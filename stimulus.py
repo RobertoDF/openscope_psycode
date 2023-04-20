@@ -7,7 +7,7 @@ def make_movie_stim(movie_path, window):
     return MovieStim(movie_path=movie_path,
                      window=window,
                      frame_length=2.0/120.0,
-                     size=(2560, 1440),
+                     size=(1920, 1080),
                      start_time=0.0,
                      stop_time=None,
                      flip_v=True,)
@@ -21,7 +21,7 @@ window = Window(fullscr=True,
                 screen=1,)
 
 g0 = make_movie_stim(movie_path="data/movie_clip_A.npy", window=window)
-g0.set_display_sequence([(0.0, 2.0), (6.0, 8.0)])
+g0.set_display_sequence([(0.0, 2.0)])
 g1 = make_movie_stim(movie_path="data/movie_clip_B.npy", window=window)
 g1.set_display_sequence([(2.0, 4.0)])
 g2 = make_movie_stim(movie_path="data/movie_clip_C.npy", window=window)
