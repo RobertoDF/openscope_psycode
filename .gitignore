@@ -1,3 +1,9 @@
+# Numpy movies, to big
+data/movie_clip*.npy
+
+# PyCharm Stuff
+.idea
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
