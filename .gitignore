@@ -1,5 +1,5 @@
 # Numpy movies, to big
-data/movie_clip*.npy
+data/*.npy
 
 # PyCharm Stuff
 .idea
