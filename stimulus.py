@@ -11,7 +11,9 @@ movie_clip_files = ['data/A_blinking_video.npy', 'data/B_blinking_video.npy', 'd
 
 # Load the random movie clip order that were provided by Prof. Berry. Subtracts 1 from each value to
 # convert from 1-indexed to 0-indexed.
-order = (np.loadtxt('data/stimulus_orderings/movie_order_random_20min.txt').astype(int)-1)
+order20 = (np.loadtxt('data/stimulus_orderings/movie_order_random_20min.txt').astype(int)-1)
+order50 = (np.loadtxt('data/stimulus_orderings/movie_order_random_50min.txt').astype(int)-1)
+order70 = (np.loadtxt('data/stimulus_orderings/movie_order_random_70min.txt').astype(int)-1)
 
 
 def make_movie_stimulus(movie_paths, order, window):
@@ -62,6 +64,13 @@ window = Window(fullscr=False,
 config = {
     'sync_sqr': True,
 }
+
+day = 0  # change the value of day for different days
+
+if day == 0 or day == 5:
+    order = order20
+else:
+    order = order50
 
 ss = make_movie_stimulus(movie_clip_files, order, window)
 
