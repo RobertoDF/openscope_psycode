@@ -7,13 +7,14 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # movie_clip_files = ['data/movie_clip_A.npy', 'data/movie_clip_B.npy', 'data/movie_clip_C.npy', 'data/gray.npy']
-movie_clip_files = ['data/A_blinking_video.npy', 'data/B_blinking_video.npy', 'data/C_blinking_video.npy', 'data/gray.npy']
+movie_clip_files = ['data/A_blinking_video.npy', 'data/B_blinking_video.npy', 'data/C_blinking_video.npy',
+                    'data/gray.npy']
 
 # Load the random movie clip order that were provided by Prof. Berry. Subtracts 1 from each value to
 # convert from 1-indexed to 0-indexed.
-order20 = (np.loadtxt('data/stimulus_orderings/movie_order_random_20min.txt').astype(int)-1)
-order50 = (np.loadtxt('data/stimulus_orderings/movie_order_random_50min.txt').astype(int)-1)
-order70 = (np.loadtxt('data/stimulus_orderings/movie_order_random_70min.txt').astype(int)-1)
+order20 = (np.loadtxt('data/stimulus_orderings/movie_order_random_20min.txt').astype(int) - 1)
+order50 = (np.loadtxt('data/stimulus_orderings/movie_order_random_50min.txt').astype(int) - 1)
+order70 = (np.loadtxt('data/stimulus_orderings/movie_order_random_70min.txt').astype(int) - 1)
 
 
 def make_movie_stimulus(movie_paths, order, window):
