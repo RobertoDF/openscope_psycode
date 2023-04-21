@@ -1,3 +1,28 @@
+# Stimulus design
+#
+# 1. For the random stimulus order (days #0 and #5):
+#
+#     • there are 4 difference choices of a 2 sec duration stimulus
+#       – movie clip A
+#       – movie clip B
+#       – movie clip C
+#       – a constant grey screen, X
+#
+#     • these will be displayed in a randomized order.
+#     • this order will be exactly the same on day #0 and day #5.
+#     • there will be 525 repeats of each of the 4 stimuli.
+#
+# 2. For the sequence stimulus order (day #1 – #4):
+#
+#     • the 3 movie clips are shown in the same repeated order, ABC, for 50 minutes.
+#     • this will result in 500 repeats of this movie clip sequence.
+#     • in the last 20 minutes, the stimuli will be shown in a random order with the grey screen intermixed, as on days
+#       #0 and #5
+#     • a different random sequence will be chosen and kept the same across days #1 – #4.
+#     • this will result in 150 repeats of each of these 4 stimuli.
+
+
+import argparse
 import numpy as np
 
 from psychopy import monitors
@@ -9,16 +34,13 @@ import logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-# Change depending on the DAY of the experiment. Maybe this should be a command line argument?
-DAY = 0
-
 # Paths to the movie clip files to load.
 movie_clip_files = ['data/movie_clip_A.npy', 'data/movie_clip_B.npy', 'data/movie_clip_C.npy', 'data/gray.npy']
 
-# Set of debug movie clips to load. These videos have blinking letters to make clips easier to recognize.
+# Set of debug movie clip s to load. These videos have blinking letters to make clips easier to recognize.
 # If they don't exist yet make sure to run gen_letter_videos.py first. Comment out if not debugging!
-movie_clip_files = ['data/A_blinking_video.npy', 'data/B_blinking_video.npy', 'data/C_blinking_video.npy',
-                    'data/gray.npy']
+# movie_clip_files = ['data/A_blinking_video.npy', 'data/B_blinking_video.npy', 'data/C_blinking_video.npy',
+#                     'data/gray.npy']
 
 # Load the random movie clip order that were provided by Prof. Berry. Subtracts 1 from each value to
 # convert from 1-indexed to 0-indexed.
@@ -70,6 +92,13 @@ def make_movie_stimulus(movie_paths, order, window):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser("stimulus")
+    parser.add_argument("day", help="An integer representing the day of the experiment.", type=int)
+    args = parser.parse_args()
+
+    # Change depending on the DAY of the experiment. Maybe this should be a command line argument?
+    DAY = 0
+
     # Copied monitor and window setup from:
     # https://github.com/AllenInstitute/openscope-glo-stim/blob/main/test-scripts/cohort-1-test-12min-drifting.py
 
@@ -90,9 +119,9 @@ if __name__ == "__main__":
     }
 
     if DAY == 0 or DAY == 5:
-        order = order20
+        order = order70
     else:
-        order = order50
+        order = np.concatenate((order50, order20))
 
     ss = make_movie_stimulus(movie_clip_files, order, window)
 
