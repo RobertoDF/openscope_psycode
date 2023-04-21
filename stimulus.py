@@ -1,25 +1,26 @@
+# -*- coding: utf-8 -*-
 # Stimulus design
 #
 # 1. For the random stimulus order (days #0 and #5):
 #
-#     • there are 4 difference choices of a 2 sec duration stimulus
+#     - there are 4 difference choices of a 2 sec duration stimulus
 #       – movie clip A
 #       – movie clip B
 #       – movie clip C
 #       – a constant grey screen, X
 #
-#     • these will be displayed in a randomized order.
-#     • this order will be exactly the same on day #0 and day #5.
-#     • there will be 525 repeats of each of the 4 stimuli.
+#     - these will be displayed in a randomized order.
+#     - this order will be exactly the same on day #0 and day #5.
+#     - there will be 525 repeats of each of the 4 stimuli.
 #
 # 2. For the sequence stimulus order (day #1 – #4):
 #
-#     • the 3 movie clips are shown in the same repeated order, ABC, for 50 minutes.
-#     • this will result in 500 repeats of this movie clip sequence.
-#     • in the last 20 minutes, the stimuli will be shown in a random order with the grey screen intermixed, as on days
+#     - the 3 movie clips are shown in the same repeated order, ABC, for 50 minutes.
+#     - this will result in 500 repeats of this movie clip sequence.
+#     - in the last 20 minutes, the stimuli will be shown in a random order with the grey screen intermixed, as on days
 #       #0 and #5
-#     • a different random sequence will be chosen and kept the same across days #1 – #4.
-#     • this will result in 150 repeats of each of these 4 stimuli.
+#     - a different random sequence will be chosen and kept the same across days #1 – #4.
+#     - this will result in 150 repeats of each of these 4 stimuli.
 
 
 import argparse
@@ -93,11 +94,9 @@ def make_movie_stimulus(movie_paths, order, window):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser("stimulus")
-    parser.add_argument("day", help="An integer representing the day of the experiment.", type=int)
+    parser.add_argument("day", help="An integer representing the day of the experiment. Defaults to Day 0.",
+                        nargs='?', type=int, default=0)
     args = parser.parse_args()
-
-    # Change depending on the DAY of the experiment. Maybe this should be a command line argument?
-    DAY = 0
 
     # Copied monitor and window setup from:
     # https://github.com/AllenInstitute/openscope-glo-stim/blob/main/test-scripts/cohort-1-test-12min-drifting.py
@@ -118,7 +117,7 @@ if __name__ == "__main__":
         'sync_sqr': True,
     }
 
-    if DAY == 0 or DAY == 5:
+    if args.day == 0 or args.day == 5:
         order = order70
     else:
         order = np.concatenate((order50, order20))
