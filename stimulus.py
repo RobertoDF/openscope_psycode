@@ -25,6 +25,7 @@
 
 import argparse
 import numpy as np
+import os
 
 from psychopy import monitors
 from camstim import MovieStim, SweepStim, Window, Warp
@@ -42,6 +43,13 @@ movie_clip_files = ['data/movie_clip_A.npy', 'data/movie_clip_B.npy', 'data/movi
 # If they don't exist yet make sure to run gen_letter_videos.py first. Comment out if not debugging!
 # movie_clip_files = ['data/A_blinking_video.npy', 'data/B_blinking_video.npy', 'data/C_blinking_video.npy',
 #                     'data/gray.npy']
+
+MOVIE_ZIP_URL = "https://tigress-web.princeton.edu/~dmturner/allen_stimulus/movie_clips.zip"
+for clip_path in movie_clip_files:
+    if not os.path.exists(clip_path):
+        raise ValueError("Movie clip file not found: {}. Make sure ".format(clip_path) +
+                         "to download from {} and extract them to the data folder.".format(MOVIE_ZIP_URL))
+
 
 # Load the random movie clip order that were provided by Prof. Berry. Subtracts 1 from each value to
 # convert from 1-indexed to 0-indexed.
@@ -68,9 +76,11 @@ def make_movie_stimulus(movie_paths, order, window):
 
         # If the order index is less than the number of movie clips, load the movie clip.
         if i < len(movie_paths):
+
+            # The movie clips should be 2 seconds long and should be played at 60 fps.
             s = MovieStim(movie_path=movie_paths[i],
                           window=window,
-                          frame_length=2.0 / 120.0,
+                          frame_length=1.0 / 60.0,
                           size=(1920, 1080),
                           start_time=0.0,
                           stop_time=None,
