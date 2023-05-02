@@ -81,7 +81,7 @@ def make_movie_stimulus(movie_paths, order, window):
                     params= {}
                     )
     
-    ss.add_item(f, "foraging")
+    stim.add_item(f, "foraging")
 
     return stim
 
@@ -94,8 +94,8 @@ if __name__ == "__main__":
     
     # print args
     if args.json_path == "":
-        logging.WARNING("No json path provided, using default parameters. \
-                        THIS IS NOT THE EXPECTED BEHAVIOR FOR PRODUCTION RUNS")
+        logging.warning("No json path provided, using default parameters. THIS IS NOT THE EXPECTED BEHAVIOR FOR PRODUCTION RUNS")
+        json_params = {}
     else:
         with open(args.json_path, 'r') as f:
             # we use the yaml package here because the json package loads as unicode, which prevents using the keys as parameters later
