@@ -29,6 +29,7 @@ import yaml
 import numpy as np
 from psychopy import monitors
 import argparse
+import logging
 
 def make_movie_stimulus(movie_paths, order, window):
     """Generate a Stimulus that plays a series of movie clips in a specified order."""
@@ -92,10 +93,15 @@ if __name__ == "__main__":
     args, _ = parser.parse_known_args() # <- this ensures that we ignore other arguments that might be needed by camstim
     
     # print args
-    with open(args.json_path, 'r') as f:
-        # we use the yaml package here because the json package loads as unicode, which prevents using the keys as parameters later
-        json_params = yaml.load(f)
-    # end of mtrain part
+    if args.json_path == "":
+        logging.WARNING("No json path provided, using default parameters. \
+                        THIS IS NOT THE EXPECTED BEHAVIOR FOR PRODUCTION RUNS")
+    else:
+        with open(args.json_path, 'r') as f:
+            # we use the yaml package here because the json package loads as unicode, which prevents using the keys as parameters later
+            json_params = yaml.load(f)
+            logging.info("Loaded json parameters from mtrain")
+            # end of mtrain part
 
     # Copied monitor and window setup from:
     # https://github.com/AllenInstitute/openscope-glo-stim/blob/main/test-scripts/cohort-1-test-12min-drifting.py
