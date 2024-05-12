@@ -3,10 +3,12 @@ import argparse
 import yaml
 import numpy as np
 from six import iteritems
-from camstim.change import DoCTask, DoCTrialGenerator, Epoch
+from camstim.change import DoCTask, DoCTrialGenerator
+from camstim.behavior import Epoch
 from camstim.sweepstim import MovieStim
 from camstim.experiment import EObject, ETimer
-from experiment import EObject, ETimer
+from psychopy import monitors
+
 try:
     from pyglet.window import key
 except:
@@ -17,7 +19,8 @@ import logging
 import time
 import zmq
 from zro import Proxy
-stage = Proxy(f"tcp://localhost:6001", serialization="json", timeout=.5)  # ZRO Proxy to PhidgetServer
+stage = Proxy("tcp://localhost:6001", serialization="json", timeout=.5)  # ZRO Proxy to PhidgetServer
+logging.basicConfig(level=logging.DEBUG)
 
 try:
     stage.uptime
@@ -31,25 +34,49 @@ from camstim import Stimulus, Window, Warp
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+class AddEpochDoc(DoCTask):
+    started = QtCore.Signal()
+
+    def start_epochs(self, list_epochs):
+        print("starting new task")
+        for indiv_epoch in list_epochs:
+        # Attaching epoch
+            self.started.connect(indiv_epoch.enter)
+        self.start()
+
+    def start(self):
+        """ Starts the task. """
+        super(DoCTask, self).start()
+        # schedule a time for the task to end
+        start_stop_padding = self._doc_config['start_stop_padding']
+        self._task_scheduled_end = time.clock() + self._doc_config['max_task_duration_min'] * 60.0 + start_stop_padding
+        self.stim_off()
+        self.started.emit()
+        ETimer.singleShot(start_stop_padding, self._next_trial)
+
 class DocNoLickSpout(Epoch):
     """ DoC Epoch that retracts the lick spout. """
     def __init__(self, stage, *args, **kwargs):
         super(DocNoLickSpout, self).__init__(*args, **kwargs)
         self.stage = stage
     def _on_entry(self):
+        logging.info("Retracting lickspout")
         self.stage.retract_lickspout()
     def _on_exit(self):
+        logging.info("Extending lickspout")
         self.stage.extend_lickspout()
-
+    
 class DocWithLickSpout(Epoch):
     """ DoC Epoch that retracts the lick spout. """
     def __init__(self, stage, *args, **kwargs):
-        super(DocNoLickSpout, self).__init__(*args, **kwargs)
+        super(DocWithLickSpout, self).__init__(*args, **kwargs)
         self.stage = stage
     def _on_entry(self):
+        logging.info("Extending lickspout")
         self.stage.extend_lickspout()
 
     def _on_exit(self):
+        logging.info("Retracting lickspout")
         self.stage.retract_lickspout()
 
 class DocDistribModifier(Epoch):
@@ -90,7 +117,7 @@ class DocSpaceBarTracker(EObject):
         if self._keys[key.SPACE]:
             if not self._lockout:              
                 self.keyspace_events.append(self._update_count)
-      
+                logging.info("Space bar pressed at update {}".format(self._update_count))
                 # HERE WE LOG THE SPACEBAR PRESS
                 self._lockout = True
                 self._lockout_timer.start(200)
@@ -140,10 +167,9 @@ start_padding_windowless = json_params.get("start_padding_windowless")
 max_task_duration_min = json_params.get("max_task_duration_min")
 
 if start_padding_windowless:
-    print(
-        'entering start_padding_windowless: {}s'
-            .format(start_padding_windowless)
-    )
+    logging.info("start_padding_windowless: {}s".format(start_padding_windowless))
+    logging.info("Entering start_padding_windowless: {}s".format(start_padding_windowless))
+
     tic = time.time()
     try:
         while True:
@@ -155,10 +181,23 @@ if start_padding_windowless:
         print('start_padding_windowless aborted')
         sys.exit(1)
 
-# Set up display window (This may become unnecessary in future release)
-if "luminance_matching_intensity" in stimulus:
+dev_mode = json_params.get("dev_mode", True)
+
+if dev_mode:
+    my_monitor = monitors.Monitor(name='Test')
+    my_monitor.setSizePix((1280,800))
+    my_monitor.setWidth(20)
+    my_monitor.setDistance(15)
+    my_monitor.saveMon()
+    window = Window(size=[1024,768],
+        fullscr=False,
+        screen=0,
+        monitor= my_monitor,
+        warp=Warp.Spherical
+    )
+elif "luminance_matching_intensity" in stimulus:
     window = Window(
-        fullscr=json_params.get('dev', False) is False,
+        fullscr=True,
         screen=1,
         monitor='Gamma1.Luminance50',
         color=stimulus['luminance_matching_intensity'],
@@ -166,7 +205,7 @@ if "luminance_matching_intensity" in stimulus:
     )
 else : 
     window = Window(
-        fullscr=json_params.get('dev', False) is False,
+        fullscr=True,
         screen=1,
         monitor='Gamma1.Luminance50',
         warp=Warp.Spherical,
@@ -174,7 +213,7 @@ else :
 
 # Set up Task
 params = {}
-f = DoCTask(window=window,
+f = AddEpochDoc(window=window,
             auto_update=True,
             params=params)
 t = DoCTrialGenerator(cfg=f.params) # This also subject to change
@@ -212,8 +251,8 @@ if prologue:
 # add fingerprint to end of session
 epilogue = json_params.get('epilogue', None)
 
-injection_start = json_params.get('injection_start', None)  
-injection_end = json_params.get('injection_end', None)
+injection_start = json_params.get('injection_start', 10)  
+injection_end = json_params.get('injection_end', 20)
 
 short_distrib_start1 = json_params.get('short_distrib_start1', None)  
 short_distrib_end1 = json_params.get('short_distrib_end1', None)
@@ -223,11 +262,11 @@ short_distrib_start2 = json_params.get('short_distrib_start2', None)
 short_distrib_end2 = json_params.get('short_distrib_end2', None)
 change_time_dist2 = json_params.get('change_time_dist2', 0.4)
 
-
+list_epochs = []
 # We add the gray period for the injection
-if injection_start:
+if injection_start!=None:
     # We add the epoch to remove the lick spout
-    no_lick_spout_epoch = DocNoLickSpout(stage = stage , delay=injection_start, duration=injection_end-injection_start)
+    no_lick_spout_epoch = DocNoLickSpout(stage = stage , task=f, delay=injection_start, duration=injection_end-injection_start)
     f.add_epoch(no_lick_spout_epoch)
     TrackSpaceBar = DocSpaceBarTracker(window=window)
     f.add_item(TrackSpaceBar)
@@ -239,16 +278,15 @@ if injection_start:
                             size=(250, 250),
                             mask="None",
                             texRes=256,
-                            Contrast=1,
-                            Color=0.5,
-                            Contrast=1,
-                            Color=0.5,
+                            contrast=1,
                             sf=0,
                             ),
+	    sweep_params={},
             sweep_length=injection_end-injection_start,
             start_time=0.0,
             blank_length=0,
             blank_sweeps=0,
+            fps=60,
             runs = 1,
             shuffle=False,
             save_sweep_table=True,
@@ -260,16 +298,19 @@ if injection_start:
         name="injection_period",
     )
 if short_distrib_start1:
-    DistribMod1 = DocDistribModifier(time_change=change_time_dist1, delay=short_distrib_start1, duration=short_distrib_end1-short_distrib_start1)
+    DistribMod1 = DocDistribModifier(time_change=change_time_dist1, task=f, delay=short_distrib_start1, duration=short_distrib_end1-short_distrib_start1)
     f.add_epoch(DistribMod1)
+    list_epochs.append(DistribMod1)
     
 if short_distrib_start2:
-    DistribMod2 = DocDistribModifier(time_change=change_time_dist2, delay=short_distrib_start2, duration=short_distrib_end2-short_distrib_start2)
+    DistribMod2 = DocDistribModifier(time_change=change_time_dist2, task=f, delay=short_distrib_start2, duration=short_distrib_end2-short_distrib_start2)
     f.add_epoch(DistribMod2)
+    list_epochs.append(DistribMod2)
 
 # We only add the lick spout for the task
-DocWithLickSpout = DocWithLickSpout(stage = stage , delay=start_stop_padding, duration=max_task_duration_min+start_stop_padding)
+DocWithLickSpout = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padding, duration=max_task_duration_min+start_stop_padding)
 f.add_epoch(DocWithLickSpout)
+list_epochs.append(DocWithLickSpout)
 
 if epilogue:
     if prologue:
@@ -289,4 +330,4 @@ if epilogue:
     )
 
 # Run it
-f.start()
+f.start_epochs(list_epochs)
