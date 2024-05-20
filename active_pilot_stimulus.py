@@ -86,11 +86,14 @@ class DocDistribModifier(Epoch):
         self.time_change = time_change
 
     def _on_entry(self):
-        self.old_time_change = self._task.change_time_dist
-        self._task.trial_generator.change_time_dist = self.time_change
+        logging.info("Changing time distribution to {}".format(self.time_change))
+        self.old_time_change = self._task._trial_generator.change_time_scale 
+        self._task._trial_generator.change_time_scale = self.time_change
 
     def _on_exit(self):
-        self._task.trial_generator.old_time_change = self.old_time_change
+        logging.info("Changing time distribution back to {}".format(self.old_time_change))
+        self._task._trial_generator.change_time_scale = self.old_time_change
+
 
 class DocSpaceBarTracker(EObject):
     """ DoC object to track space bar presses.
@@ -268,6 +271,8 @@ if injection_start!=None:
     # We add the epoch to remove the lick spout
     no_lick_spout_epoch = DocNoLickSpout(stage = stage , task=f, delay=injection_start, duration=injection_end-injection_start)
     f.add_epoch(no_lick_spout_epoch)
+    list_epochs.append(no_lick_spout_epoch)
+
     TrackSpaceBar = DocSpaceBarTracker(window=window)
     f.add_item(TrackSpaceBar)
 
@@ -283,7 +288,7 @@ if injection_start!=None:
                             ),
 	    sweep_params={},
             sweep_length=injection_end-injection_start,
-            start_time=0.0,
+            start_time=injection_start,
             blank_length=0,
             blank_sweeps=0,
             fps=60,
@@ -308,7 +313,7 @@ if short_distrib_start2:
     list_epochs.append(DistribMod2)
 
 # We only add the lick spout for the task
-DocWithLickSpout = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padding, duration=max_task_duration_min+start_stop_padding)
+DocWithLickSpout = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padding, duration=max_task_duration_min*60)
 f.add_epoch(DocWithLickSpout)
 list_epochs.append(DocWithLickSpout)
 
