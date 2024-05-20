@@ -62,10 +62,13 @@ class DocNoLickSpout(Epoch):
     def _on_entry(self):
         logging.info("Retracting lickspout")
         self.stage.retract_lickspout()
+        self._task.stim_off()
+
     def _on_exit(self):
         logging.info("Extending lickspout")
         self.stage.extend_lickspout()
-    
+        self._task.stim_on()
+           
 class DocWithLickSpout(Epoch):
     """ DoC Epoch that retracts the lick spout. """
     def __init__(self, stage, *args, **kwargs):
@@ -276,32 +279,6 @@ if injection_start!=None:
     TrackSpaceBar = DocSpaceBarTracker(window=window)
     f.add_item(TrackSpaceBar)
 
-    # Full screen gray period
-    stimulus_obj = Stimulus(visual.GratingStim(window,
-                            pos=(0, 0),
-                            units='deg',
-                            size=(250, 250),
-                            mask="None",
-                            texRes=256,
-                            contrast=1,
-                            sf=0,
-                            ),
-	    sweep_params={},
-            sweep_length=injection_end-injection_start,
-            start_time=injection_start,
-            blank_length=0,
-            blank_sweeps=0,
-            fps=60,
-            runs = 1,
-            shuffle=False,
-            save_sweep_table=True,
-        )
-
-    f.add_static_stimulus(
-        stimulus_obj,
-        when=injection_start,
-        name="injection_period",
-    )
 if short_distrib_start1:
     DistribMod1 = DocDistribModifier(time_change=change_time_dist1, task=f, delay=short_distrib_start1, duration=short_distrib_end1-short_distrib_start1)
     f.add_epoch(DistribMod1)
