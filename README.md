@@ -17,3 +17,8 @@
     `pip install camstim/.`
 4. Download required video clips from [movie_clips.zip](https://tigress-web.princeton.edu/~dmturner/allen_stimulus/movie_clips.zip)
    Extract into the `data` directory.
+
+## Task
+
+![Task blocks](Task_structure.png)
+![Task blocks](Change_detection_task_structure.png)
