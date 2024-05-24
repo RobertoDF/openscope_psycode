@@ -20,5 +20,5 @@
 
 ## Task
 
-![Task blocks](Images/Task_structure.png)
-![Task blocks](Images/Change_detection_task_structure.png)
+![Task blocks](images/Task_structure.png)
+![Task blocks](images/Change_detection_task_structure.png)
