@@ -4,6 +4,8 @@ Our version of the change detection task (CDT) introduces two modifications:
 *   2 CDT blocks within session separated by a break to allow injection
 *  Each CDT block is further divided in two sections (short & long) in which the image changes are drawn from different distributions
 
+![overview_task](images/Task_structure.png)
+
 #### Some parameters regarding these modifictions have to be optimized
 
 1. Duration of the pre and post blocks
@@ -50,3 +52,5 @@ collect more rewards in the section where image changes tend to happen earlier. 
 by reducing the duration of this section. First step here is to decide precisely the parameters of the 
 distributions. From the proposal: *"The coefficient of the geometric distributions 
 (change_time_scale) will be 0.1 and 0.4."*
+
+![overview_task](images/Change_detection_task_structure.png)
