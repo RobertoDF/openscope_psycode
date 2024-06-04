@@ -44,6 +44,14 @@ in either histology or recorded activity (`cache.get_ecephys_session_table(filte
 
 ![Half_reward](images/Half_reward.png)
 
+Let´s subtract 1 std from the mean to find a good empirical limit for the first repetition.
+ either in number of trials:
+
+311-120 = 191 trials
+
+or seconds:
+
+1631-363 = 1268 s
 
 ## Duration of the short & long sections within each CDT
 
