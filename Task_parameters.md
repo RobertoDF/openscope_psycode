@@ -17,6 +17,10 @@ The aim is to have similar performance/engagement between the two pre- post- inj
 It is paramount that the mouse is not satiated after the 
 first block, therefore not engaging in the task afterward. 
 
+2 options are available:
+
+*Currently option 2 is choosen.*
+
 ### Option 1
 To ensure similar engagement we can look at the the mean reward amount or number 
 of hit trials per session in the 
@@ -44,7 +48,7 @@ in either histology or recorded activity (`cache.get_ecephys_session_table(filte
 
 ![Half_reward](images/Half_reward.png)
 
-Let´s subtract 1 std from the mean to find a good empirical limit for the first repetition.
+Let´s subtract 1 std from the mean to find a good empirical limit for the first repetition,
  either in number of trials:
 
 311-120 = 191 trials
