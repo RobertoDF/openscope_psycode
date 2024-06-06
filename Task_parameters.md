@@ -59,7 +59,8 @@ or on recording days only:![hit_trial](images/Hit_trial_2.png)
 
 We can hardcode the duration of the blocks by looking at 
 the mean time necessary to reach 50% of the total reward in each session. Analysis run 
-on 153 sessions, all recording sessions available, including sessions with abnormalities 
+on 153 session of the 
+[visual-behavior-neuropixels dataset](https://portal.brain-map.org/circuits-behavior/visual-behavior-neuropixels), all recording sessions available, including sessions with abnormalities 
 in either histology or recorded activity (`cache.get_ecephys_session_table(filter_abnormalities=False)`).
 
 ![Half_reward](images/Half_reward.png)
