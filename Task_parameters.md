@@ -1,4 +1,4 @@
-## Change detection task parameters
+# Change detection task parameters
 
 Our version of the change detection task (CDT) introduces two modifications:
 *   2 CDT blocks within session separated by a break to allow injection
@@ -11,10 +11,10 @@ Our version of the change detection task (CDT) introduces two modifications:
 1. Duration of the pre and post blocks
 2. Duration of the short & long sections within each CDT
 
-### 1.
+### 1. Duration of the pre and post blocks
 Pre block should be 1268 s long. See calculations in "Duration of the pre and post blocks" --> "Option 2".
 Ideally the post block should not have a predetermined end but should last until animal is engaged in the task.
-### 2.
+### 2. Duration of the short & long sections within each CDT
 With:
 
     tau_1 = 0.4
