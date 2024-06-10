@@ -15,7 +15,7 @@ Our version of the change detection task (CDT) introduces two modifications:
 Pre block should be `1268 s` long. This should corresponds to ≈ 191 total trials. Trials should be equally distributed across the two sections with different taus.
 
 See calculations in "Duration of the pre and post blocks" --> "Option 2".
-Ideally the post block should not have a predetermined end but should last until animal is engaged in the task.
+Ideally the post block should not have a predetermined end but should last until animal is engaged in the task. 
 ### 2. Duration of the short & long sections within each CDT
 With:
 
@@ -85,6 +85,10 @@ Given the use of different taus in the distributions to select image changes (lo
 the duration of each sections is weighted to produce similar amounts of hit trials (assuming cnstant performance) the final effect should not deviate greatly (5%)
 from the data analyzed here with one distribution with `tau = 0.3`.
 
+Proportion of hit_trials/total_trials during recording sessions:
+![ratio_hit_total_trials.png](images/ratio_hit_total_trials.png)
+
+This plot does *not* exclude periods when animal is disengaged. This happens often in the last portion of the session when animal is not thirsty anymore.
 
 ## Duration of the short & long sections within each CDT
 
