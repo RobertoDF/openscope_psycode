@@ -12,7 +12,9 @@ Our version of the change detection task (CDT) introduces two modifications:
 2. Duration of the short & long sections within each CDT
 
 ### 1. Duration of the pre and post blocks
-Pre block should be 1268 s long. See calculations in "Duration of the pre and post blocks" --> "Option 2".
+Pre block should be `1268 s` long. This should corresponds to ≈ 191 total trials. Trials should be equally distributed across the two sections with different taus.
+
+See calculations in "Duration of the pre and post blocks" --> "Option 2".
 Ideally the post block should not have a predetermined end but should last until animal is engaged in the task.
 ### 2. Duration of the short & long sections within each CDT
 With:
@@ -25,7 +27,12 @@ and a block of duration `X`. Time allocation between sections with different tau
     T_tau2 = X / 1.776
     T_tau1 = 0.776 * (X / 1.776)
 
-See "Duration of the short & long sections within each CDT" below.
+If we choose a duration of `1268 s`:
+
+    T_tau2 = 714 s
+    T_tau1 = 554 s
+
+See "Duration of the short & long sections within each CDT" below for details.
 
 ## Duration of the pre and post blocks
 
