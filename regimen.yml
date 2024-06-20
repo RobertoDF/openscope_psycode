@@ -123,38 +123,38 @@ transitions:
 
   - trigger: progress
     source: TRAINING_4_images_G_training_7uL_reward
-    dest: TRAINING_5_images_G_epilogue_5uL_reward
+    dest: TRAINING_5_images_G_training_5uL_reward
     conditions: meets_engagement_criteria_logged
 
   - trigger: progress
-    source: TRAINING_5_images_G_epilogue_5uL_reward
+    source: TRAINING_5_images_G_training_5uL_reward
     dest: TRAINING_5_images_G_handoff_ready_5uL_reward
     conditions: meets_engagement_and_hit_threshold
 
   - trigger: progress
     source: TRAINING_5_images_G_handoff_ready_5uL_reward
-    dest: TRAINING_5_images_G_handoff_lapsed_5uL_reward
-    unless: meets_engagement_and_hit_threshold
+    dest: TRAINING_6_psycode_passive_5uL_reward
+    conditions: meets_engagement_and_hit_threshold
 
   - trigger: progress
-    source: TRAINING_5_images_G_handoff_lapsed_5uL_reward
-    dest: TRAINING_5_images_G_handoff_ready_5uL_reward
+    source: TRAINING_6_psycode_passive_5uL_reward
+    dest: TRAINING_7_psycode_injection_5uL_reward
     conditions: meets_engagement_and_hit_threshold
 
   - trigger: manual
-    source: TRAINING_5_images_G_handoff_ready_5uL_reward
-    dest: HABITUATION_5_images_G_handoff_ready_5uL_reward
+    source: TRAINING_7_psycode_injection_5uL_reward
+    dest: EPHYS_HAB_psycode_5uL_reward
 
   - trigger: manual
-    source: HABITUATION_5_images_G_handoff_ready_5uL_reward
+    source: EPHYS_HAB_psycode_5uL_reward
     dest: EPHYS_1_psycode_5uL_reward
 
   - trigger: manual
-    source: TRAINING_5_images_G_handoff_ready_5uL_reward
-    dest: HABITUATION_5_images_G_handoff_ready_3uL_reward
-
+    source: EPHYS_HAB_psycode_5uL_reward
+    dest: EPHYS_HAB_psycode_3uL_reward
+    
   - trigger: manual
-    source: HABITUATION_5_images_G_handoff_ready_3uL_reward
+    source: EPHYS_HAB_psycode_3uL_reward
     dest: EPHYS_1_psycode_3uL_reward
 
   - trigger: manual
@@ -241,12 +241,12 @@ stages:
       # ephys-specific no grayscreen pre-exp time
       start_padding_windowless: 20.0
 
-  TRAINING_5_images_G_epilogue_5uL_reward:
+  TRAINING_5_images_G_training_5uL_reward:
     script: *change_detection_script
     script_md5: *change_detection_script_md5
     parameters:
       <<: *image_set_g_parameters
-      stage: TRAINING_5_images_G_epilogue_5uL_reward
+      stage: TRAINING_5_images_G_training_5uL_reward
       warm_up_trials: 5
       reward_volume: 0.005
 
@@ -265,24 +265,46 @@ stages:
       # ephys-specific no grayscreen pre-exp time
       start_padding_windowless: 300.0
 
-  TRAINING_5_images_G_handoff_lapsed_5uL_reward:
-    script: *change_detection_script
-    script_md5: *change_detection_script_md5
-    parameters:
-      <<: *image_set_g_parameters
-      stage: TRAINING_5_images_G_handoff_lapsed_5uL_reward
-      warm_up_trials: 5
-      reward_volume: 0.005
-
-      # ephys-specific no grayscreen pre-exp time
-      start_padding_windowless: 300.0
-
-  HABITUATION_5_images_G_handoff_ready_5uL_reward:
+  TRAINING_6_psycode_passive_5uL_reward:
     script: *psycode_script
     script_md5: *psycode_script_md5
     parameters:
       <<: *psycode_parameters
-      stage: HABITUATION_5_images_G_handoff_ready_5uL_reward
+      stage: TRAINING_6_psycode_passive_5uL_reward
+      warm_up_trials: 5
+      reward_volume: 0.005
+      free_reward_trials: 10
+      prologue: True  
+      epilogue: False
+      injection_start: None
+      injection_end: None
+      number_runs_rf: 5
+
+      # ephys-specific no grayscreen pre-exp time
+      start_padding_windowless: 300.0
+
+  TRAINING_7_psycode_injection_5uL_reward:
+    script: *psycode_script
+    script_md5: *psycode_script_md5
+    parameters:
+      <<: *psycode_parameters
+      stage: TRAINING_7_psycode_injection_5uL_reward
+      warm_up_trials: 5
+      reward_volume: 0.005
+      free_reward_trials: 10
+      prologue: True  
+      epilogue: False
+      number_runs_rf: 5
+
+      # ephys-specific no grayscreen pre-exp time
+      start_padding_windowless: 300.0
+
+  EPHYS_HAB_psycode_5uL_reward:
+    script: *psycode_script
+    script_md5: *psycode_script_md5
+    parameters:
+      <<: *psycode_parameters
+      stage: EPHYS_HAB_psycode_5uL_reward
       warm_up_trials: 5
       reward_volume: 0.005
       free_reward_trials: 10
@@ -307,12 +329,12 @@ stages:
       opto_params: 
         operation_mode: "experiment"
 
-  HABITUATION_5_images_G_handoff_ready_3uL_reward:
+  EPHYS_HAB_psycode_3uL_reward:
     script: *psycode_script
     script_md5: *psycode_script_md5
     parameters:
       <<: *psycode_parameters
-      stage: HABITUATION_5_images_G_handoff_ready_3uL_reward
+      stage: EPHYS_HAB_psycode_3uL_reward
       warm_up_trials: 5
       reward_volume: 0.003
       free_reward_trials: 10
