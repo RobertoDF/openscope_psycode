@@ -7,18 +7,24 @@ from camstim.change import DoCTask, DoCTrialGenerator
 from camstim.behavior import Epoch
 from camstim.sweepstim import MovieStim
 from camstim.experiment import EObject, ETimer
-from psychopy import monitors
-
+from camstim import Stimulus, Window, Warp
+from psychopy import monitors, visual
 try:
     from pyglet.window import key
 except:
     warnings.warn("Couldn't set up pyglet keybinds.", ImportWarning)
 from qtpy import QtCore
-from camstim import Window, Warp
 import logging
 import time
 import zmq
 from zro import Proxy
+import datetime
+import csv
+import pickle as pkl
+from copy import deepcopy
+import os
+import time
+
 stage = Proxy("tcp://localhost:6001", serialization="json", timeout=.5)  # ZRO Proxy to PhidgetServer
 logging.basicConfig(level=logging.DEBUG)
 
@@ -26,8 +32,182 @@ try:
     stage.uptime
 except zmq.error.Again:
     raise Exception("PhidgetServer is not running. Please start PhidgetServer before running this script.")
-from psychopy import visual
-from camstim import Stimulus, Window, Warp
+
+
+def run_optotagging(levels, conditions, waveforms, isis, sampleRate = 10000.):
+
+    from toolbox.IO.nidaq import AnalogOutput
+    from toolbox.IO.nidaq import DigitalOutput
+
+    sweep_on = np.array([0,0,1,0,0,0,0,0], dtype=np.uint8)
+    stim_on = np.array([0,0,1,1,0,0,0,0], dtype=np.uint8)
+    stim_off = np.array([0,0,1,0,0,0,0,0], dtype=np.uint8)
+    sweep_off = np.array([0,0,0,0,0,0,0,0], dtype=np.uint8)
+
+    ao = AnalogOutput('Dev1', channels=[1])
+    ao.cfg_sample_clock(sampleRate)
+
+    do = DigitalOutput('Dev1', 2)
+
+    do.start()
+    ao.start()
+
+    do.write(sweep_on)
+    time.sleep(5)
+
+    for i, level in enumerate(levels):
+
+        print(level)
+
+        data = waveforms[conditions[i]]
+
+        do.write(stim_on)
+        ao.write(data * level)
+        do.write(stim_off)
+        time.sleep(isis[i])
+
+    do.write(sweep_off)
+    do.clear()
+    ao.clear()
+
+def generatePulseTrain(pulseWidth, pulseInterval, numRepeats, riseTime, sampleRate = 10000.):
+
+    data = np.zeros((int(sampleRate),), dtype=np.float64)
+   # rise_samples =
+
+    rise_and_fall = (((1 - np.cos(np.arange(sampleRate*riseTime/1000., dtype=np.float64)*2*np.pi/10))+1)-1)/2
+    half_length = int(rise_and_fall.size / 2)
+    rise = rise_and_fall[:half_length]
+    fall = rise_and_fall[half_length:]
+
+    peak_samples = int(sampleRate*(pulseWidth-riseTime*2)/1000)
+    peak = np.ones((peak_samples,))
+
+    pulse = np.concatenate((rise, \
+                           peak, \
+                           fall))
+
+    interval = int(pulseInterval*sampleRate/1000.)
+
+    for i in range(0, numRepeats):
+        data[i*interval:i*interval+pulse.size] = pulse
+
+    return data
+
+def optotagging(mouse_id, operation_mode='experiment', level_list = [1.15, 1.28, 1.345], output_dir = 'C:/ProgramData/camstim/output/'):
+
+    sampleRate = 10000
+
+    # 1 s cosine ramp:
+    data_cosine = (((1 - np.cos(np.arange(sampleRate, dtype=np.float64)
+                                * 2*np.pi/sampleRate)) + 1) - 1)/2  # create raised cosine waveform
+
+    # 1 ms cosine ramp:
+    rise_and_fall = (
+        ((1 - np.cos(np.arange(sampleRate*0.001, dtype=np.float64)*2*np.pi/10))+1)-1)/2
+    half_length = int(rise_and_fall.size / 2)
+
+    # pulses with cosine ramp:
+    pulse_2ms = np.concatenate((rise_and_fall[:half_length], np.ones(
+        (int(sampleRate*0.001),)), rise_and_fall[half_length:]))
+    pulse_5ms = np.concatenate((rise_and_fall[:half_length], np.ones(
+        (int(sampleRate*0.004),)), rise_and_fall[half_length:]))
+    pulse_10ms = np.concatenate((rise_and_fall[:half_length], np.ones(
+        (int(sampleRate*0.009),)), rise_and_fall[half_length:]))
+
+    data_2ms_10Hz = np.zeros((sampleRate,), dtype=np.float64)
+
+    for i in range(0, 10):
+        interval = int(sampleRate / 10)
+        data_2ms_10Hz[i*interval:i*interval+pulse_2ms.size] = pulse_2ms
+
+    data_5ms = np.zeros((sampleRate,), dtype=np.float64)
+    data_5ms[:pulse_5ms.size] = pulse_5ms
+
+    data_10ms = np.zeros((sampleRate,), dtype=np.float64)
+    data_10ms[:pulse_10ms.size] = pulse_10ms
+
+    data_10s = np.zeros((sampleRate*10,), dtype=np.float64)
+    data_10s[:-2] = 1
+
+    ##### THESE STIMULI ADDED FOR OPENSCOPE GLO PROJECT #####
+    data_10ms_5Hz = generatePulseTrain(10, 200, 5, 1) # 1 second of 5Hz pulse train. Each pulse is 10 ms wide
+    data_6ms_40Hz = generatePulseTrain(6, 25, 40, 1)  # 1 second of 40 Hz pulse train. Each pulse is 6 ms wide
+    #########################################################
+
+    # for experiment
+
+    isi = 1.5
+    isi_rand = 0.5
+    numRepeats = 50
+
+    condition_list = [3, 4, 5]
+    waveforms = [data_2ms_10Hz, data_5ms, data_10ms, data_cosine, data_10ms_5Hz, data_6ms_40Hz]
+
+    opto_levels = np.array(level_list*numRepeats*len(condition_list)) #     BLUE
+    opto_conditions = condition_list*numRepeats*len(level_list)
+    opto_conditions = np.sort(opto_conditions)
+    opto_isis = np.random.random(opto_levels.shape) * isi_rand + isi
+
+    p = np.random.permutation(len(opto_levels))
+
+    # implement shuffle?
+    opto_levels = opto_levels[p]
+    opto_conditions = opto_conditions[p]
+
+    # for testing
+
+    if operation_mode=='test_levels':
+        isi = 2.0
+        isi_rand = 0.0
+
+        numRepeats = 2
+
+        condition_list = [0]
+        waveforms = [data_10s, data_10s]
+
+        opto_levels = np.array(level_list*numRepeats*len(condition_list)) #     BLUE
+        opto_conditions = condition_list*numRepeats*len(level_list)
+        opto_conditions = np.sort(opto_conditions)
+        opto_isis = np.random.random(opto_levels.shape) * isi_rand + isi
+
+    elif operation_mode=='pretest':
+        numRepeats = 1
+
+        condition_list = [0]
+        data_2s = data_10s[-sampleRate*2:]
+        waveforms = [data_2s]
+
+        opto_levels = np.array(level_list*numRepeats*len(condition_list)) #     BLUE
+        opto_conditions = condition_list*numRepeats*len(level_list)
+        opto_conditions = np.sort(opto_conditions)
+        opto_isis = [1]*len(opto_conditions)
+    #
+
+    outputDirectory = output_dir
+    fileDate = str(datetime.datetime.now()).replace(':', '').replace(
+        '.', '').replace('-', '').replace(' ', '')[2:14]
+    fileName = os.path.join(outputDirectory, fileDate + '_'+mouse_id + '.opto.pkl')
+
+    print('saving info to: ' + fileName)
+    fl = open(fileName, 'wb')
+    output = {}
+
+    output['opto_levels'] = opto_levels
+    output['opto_conditions'] = opto_conditions
+    output['opto_ISIs'] = opto_isis
+    output['opto_waveforms'] = waveforms
+
+    pkl.dump(output, fl)
+    fl.close()
+    print('saved.')
+
+    #
+    run_optotagging(opto_levels, opto_conditions,
+                    waveforms, opto_isis, float(sampleRate))
+"""
+end of optotagging section
+"""
 
 
 # Configure logging level
@@ -97,7 +277,6 @@ class DocDistribModifier(Epoch):
         logging.info("Changing time distribution back to {}".format(self.old_time_change))
         self._task._trial_generator.change_time_scale = self.old_time_change
 
-
 class DocSpaceBarTracker(EObject):
     """ DoC object to track space bar presses.
     """
@@ -137,6 +316,39 @@ class DocSpaceBarTracker(EObject):
         self.keyspace_events = np.array(self.keyspace_events)
         return super(DocSpaceBarTracker, self).package()
 
+def create_receptive_field_mapping(window, number_runs = 15):
+    x = np.arange(-40,45,10)
+    y = np.arange(-40,45,10)
+    position = []
+    for i in x:
+        for j in y:
+            position.append([i,j])
+
+    stimulus = Stimulus(visual.GratingStim(window,
+                        units='deg',
+                        size=20,
+                        mask="circle",
+                        texRes=256,
+                        sf=0.1,
+                        ),
+        sweep_params={
+                'Pos':(position, 0),
+                'Contrast': ([0.8], 4),
+                'TF': ([4.0], 1),
+                'SF': ([0.08], 2),
+                'Ori': ([0,45,90], 3),
+                },
+        sweep_length=0.25,
+        start_time=0.0,
+        blank_length=0.0,
+        blank_sweeps=0,
+        runs=number_runs,
+        shuffle=True,
+        save_sweep_table=True,
+        )
+    stimulus.stim_path = r"C:\\not_a_stim_script\\receptive_field_block.stim"
+
+    return stimulus
 
 def load_params():
     parser = argparse.ArgumentParser()
@@ -209,7 +421,7 @@ elif "luminance_matching_intensity" in stimulus:
         color=stimulus['luminance_matching_intensity'],
         warp=Warp.Spherical,
     )
-else : 
+else: 
     window = Window(
         fullscr=True,
         screen=1,
@@ -222,7 +434,7 @@ params = {}
 f = AddEpochDoc(window=window,
             auto_update=True,
             params=params)
-t = DoCTrialGenerator(cfg=f.params) # This also subject to change
+t = DoCTrialGenerator(cfg=f.params) 
 f.set_trial_generator(t)
 
 # Set up our DoC stimulus
@@ -239,27 +451,18 @@ start_stop_padding = json_params.get('start_stop_padding', 0.5)
 
 # add prologue to start of session
 prologue = json_params.get('prologue', None)
+number_runs_rf = json_params.get('number_runs_rf', 1) # 8 is the number of repeats for prod(8min)
+
 if prologue:
-
-    prologue_movie = MovieStim(
-        window=window,
-        start_time=0.0,
-        stop_time=start_stop_padding,
-        flip_v=True,
-        **prologue['params']
-    )
+    epilogue_stim_pre = create_receptive_field_mapping(window, number_runs_rf)
     f.add_static_stimulus(
-        prologue_movie,
+        epilogue_stim_pre,
         when=0.0,
-        name=prologue['name'],
+        name="pre_receptive_field_mapping",
     )
 
-# add fingerprint to end of session
-epilogue = json_params.get('epilogue', None)
-
-injection_start = json_params.get('injection_start', 10)  
-injection_end = json_params.get('injection_end', 20)
-
+injection_start = json_params.get('injection_start', None)  
+injection_end = json_params.get('injection_end', None)
 short_distrib_start1 = json_params.get('short_distrib_start1', None)  
 short_distrib_end1 = json_params.get('short_distrib_end1', None)
 change_time_dist1 = json_params.get('change_time_dist1', 0.4)
@@ -294,22 +497,34 @@ DocWithLickSpout = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padd
 f.add_epoch(DocWithLickSpout)
 list_epochs.append(DocWithLickSpout)
 
+epilogue = json_params.get('epilogue', None)
 if epilogue:
-    if prologue:
-        assert epilogue['params']['frame_length'] == prologue['params']['frame_length'], "`frame_length` must match between prologue and epilogue"
-
-    epilogue_movie = MovieStim(
-        window=window,
-        start_time=start_stop_padding,
-        stop_time=None,
-        flip_v=True,
-        **epilogue['params']
-    )
+    epilogue_stim_post = create_receptive_field_mapping(window, number_runs_rf)
     f.add_static_stimulus(
-        epilogue_movie,
+        epilogue_stim_post,
         when='end',
-        name=epilogue['name'],
+        name="post_receptive_field_mapping"
     )
 
-# Run it
-f.start_epochs(list_epochs)
+try:
+    f.start_epochs(list_epochs)
+except SystemExit:
+    print("We prevent camstim exiting the script to complete optotagging")
+
+opto_disabled = json_params.get('disable_opto', True)
+
+if not(opto_disabled):
+    from camstim.misc import get_config
+    from camstim.zro import agent
+    opto_params = deepcopy(json_params.get("opto_params"))
+    opto_params["mouse_id"] = json_params["mouse_id"]
+    opto_params["output_dir"] = agent.OUTPUT_DIR
+    #Read opto levels from stim.cfg file
+    config_path = agent.CAMSTIM_CONFIG_PATH
+    stim_cfg_opto_params = get_config(
+        'Optogenetics',
+        path=config_path,
+    )
+    opto_params["level_list"] = stim_cfg_opto_params["level_list"]
+
+    optotagging(**opto_params)
