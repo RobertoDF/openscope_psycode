@@ -1,8 +1,8 @@
 _change_detection_script: &change_detection_script http://stash.corp.alleninstitute.org/projects/VB/repos/visual_behavior_scripts/raw/change_detection_extended.py?at=5adfa6e285774719135d0ebcba421f15f6f56168
 _change_detection_script_md5: &change_detection_script_md5 410d697d666405eed63f72e4d3e189bb
 
-_psycode_script: &psycode_script http://stash.corp.alleninstitute.org/users/jeromel/repos/openscope_psycode/raw/active_pilot_stimulus.py?at=099f2207b456d36ab1b3eddb138f00cc82a85292
-_psycode_script_md5: &psycode_script_md5 e8b53d4da5f265954c46362b3d82b69c
+_psycode_script: &psycode_script http://stash.corp.alleninstitute.org/users/jeromel/repos/openscope_psycode/raw/active_pilot_stimulus.py?at=9b4fefabcd5990d0bee51264dc2e1693c14c134c
+_psycode_script_md5: &psycode_script_md5 097677c6a4ffc77a59d022c0a199b18a
 
 _full_field_gratings_stimulus: &full_field_gratings
   class: grating
@@ -37,6 +37,10 @@ _flash_parameters: &flash_parameters
 
   # auto rewards
   auto_reward_vol: 0.005
+
+  # This seems to be needed to prevent a bug
+  auto_reward_volume: 0.005
+
   warm_up_trials: 5
   auto_reward_delay: 0.150
   free_reward_trials: 10000
