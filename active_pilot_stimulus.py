@@ -227,11 +227,13 @@ class AddEpochDoc(DoCTask):
         """ Starts the task. """
         super(DoCTask, self).start()
         # schedule a time for the task to end
+        number_runs_rf = self._doc_config['number_runs_rf'] 
+        prologue_offset = number_runs_rf*60
         start_stop_padding = self._doc_config['start_stop_padding']
-        self._task_scheduled_end = time.clock() + self._doc_config['max_task_duration_min'] * 60.0 + start_stop_padding
+        self._task_scheduled_end = time.clock() + self._doc_config['max_task_duration_min'] * 60.0 + start_stop_padding + prologue_offset
         self.stim_off()
         self.started.emit()
-        ETimer.singleShot(start_stop_padding, self._next_trial)
+        ETimer.singleShot(prologue_offset+start_stop_padding, self._next_trial)
 
 class DocNoLickSpout(Epoch):
     """ DoC Epoch that retracts the lick spout. """
@@ -492,7 +494,7 @@ start_stop_padding = json_params.get('start_stop_padding', 0.5)
 # add prologue to start of session
 prologue = json_params.get('prologue', None)
 number_runs_rf = json_params.get('number_runs_rf', 1) # 8 is the number of repeats for prod(8min)
-
+prologue_offset = number_runs_rf*60
 if prologue:
     epilogue_stim_pre = create_receptive_field_mapping(window, number_runs_rf)
     f.add_static_stimulus(
@@ -515,7 +517,7 @@ list_epochs = []
 # We add the gray period for the injection
 if injection_start!=None:
     # We add the epoch to remove the lick spout
-    no_lick_spout_epoch = DocNoLickSpout(stage = stage , task=f, delay=injection_start, duration=injection_end-injection_start)
+    no_lick_spout_epoch = DocNoLickSpout(stage = stage , task=f, delay=prologue_offset+start_stop_padding+injection_start, duration=injection_end-injection_start)
     f.add_epoch(no_lick_spout_epoch)
     list_epochs.append(no_lick_spout_epoch)
 
@@ -523,17 +525,17 @@ if injection_start!=None:
     f.add_item(TrackSpaceBar)
 
 if short_distrib_start1:
-    DistribMod1 = DocDistribModifier(time_change=change_time_dist1, task=f, delay=short_distrib_start1, duration=short_distrib_end1-short_distrib_start1)
+    DistribMod1 = DocDistribModifier(time_change=change_time_dist1, task=f, delay=prologue_offset+start_stop_padding+short_distrib_start1, duration=short_distrib_end1-short_distrib_start1)
     f.add_epoch(DistribMod1)
     list_epochs.append(DistribMod1)
     
 if short_distrib_start2:
-    DistribMod2 = DocDistribModifier(time_change=change_time_dist2, task=f, delay=short_distrib_start2, duration=short_distrib_end2-short_distrib_start2)
+    DistribMod2 = DocDistribModifier(time_change=change_time_dist2, task=f, delay=prologue_offset+start_stop_padding+short_distrib_start2, duration=short_distrib_end2-short_distrib_start2)
     f.add_epoch(DistribMod2)
     list_epochs.append(DistribMod2)
 
 # We only add the lick spout for the task
-doc_object = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padding, duration=max_task_duration_min*60)
+doc_object = DocWithLickSpout(stage = stage, task=f, delay=prologue_offset+start_stop_padding, duration=max_task_duration_min*60)
 f.add_epoch(doc_object)
 list_epochs.append(doc_object)
 
