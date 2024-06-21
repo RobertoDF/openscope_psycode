@@ -26,7 +26,6 @@ import os
 import time
 
 stage = Proxy("tcp://localhost:6001", serialization="json", timeout=.5)  # ZRO Proxy to PhidgetServer
-logging.basicConfig(level=logging.DEBUG)
 
 try:
     stage.uptime
@@ -239,6 +238,20 @@ class DocNoLickSpout(Epoch):
     def __init__(self, stage, *args, **kwargs):
         super(DocNoLickSpout, self).__init__(*args, **kwargs)
         self.stage = stage
+
+    # These setter and getter are needed to disconnect the epoch from the list of epochs in the task
+    # Without these the epoch collide with another as epochs are assumed to not overlaps
+    @property
+    def _active(self):
+        return self._is_active
+
+    @_active.setter
+    def _active(self, value):
+        self._is_active = value
+
+    def set_active(self, active):
+        self._active = active
+
     def _on_entry(self):
         logging.info("Retracting lickspout")
         self.stage.retract_lickspout()
@@ -254,6 +267,20 @@ class DocWithLickSpout(Epoch):
     def __init__(self, stage, *args, **kwargs):
         super(DocWithLickSpout, self).__init__(*args, **kwargs)
         self.stage = stage
+
+    # These setter and getter are needed to disconnect the epoch from the list of epochs in the task
+    # Without these the epoch collide with another as epochs are assumed to not overlaps
+    @property
+    def _active(self):
+        return self._is_active
+
+    @_active.setter
+    def _active(self, value):
+        self._is_active = value
+
+    def set_active(self, active):
+        self._active = active
+
     def _on_entry(self):
         logging.info("Extending lickspout")
         self.stage.extend_lickspout()
@@ -267,6 +294,19 @@ class DocDistribModifier(Epoch):
     def __init__(self, time_change=0.1, *args, **kwargs):
         super(DocDistribModifier, self).__init__(*args, **kwargs)
         self.time_change = time_change
+
+    # These setter and getter are needed to disconnect the epoch from the list of epochs in the task
+    # Without these the epoch collide with another as epochs are assumed to not overlaps
+    @property
+    def _active(self):
+        return self._is_active
+
+    @_active.setter
+    def _active(self, value):
+        self._is_active = value
+
+    def set_active(self, active):
+        self._active = active
 
     def _on_entry(self):
         logging.info("Changing time distribution to {}".format(self.time_change))
@@ -493,9 +533,9 @@ if short_distrib_start2:
     list_epochs.append(DistribMod2)
 
 # We only add the lick spout for the task
-DocWithLickSpout = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padding, duration=max_task_duration_min*60)
-# f.add_epoch(DocWithLickSpout)
-list_epochs.append(DocWithLickSpout)
+doc_object = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padding, duration=max_task_duration_min*60)
+f.add_epoch(doc_object)
+list_epochs.append(doc_object)
 
 epilogue = json_params.get('epilogue', None)
 if epilogue:
