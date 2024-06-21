@@ -2,7 +2,7 @@ _change_detection_script: &change_detection_script http://stash.corp.alleninstit
 _change_detection_script_md5: &change_detection_script_md5 410d697d666405eed63f72e4d3e189bb
 
 _psycode_script: &psycode_script http://stash.corp.alleninstitute.org/users/jeromel/repos/openscope_psycode/raw/active_pilot_stimulus.py?at=9b4fefabcd5990d0bee51264dc2e1693c14c134c
-_psycode_script_md5: &psycode_script_md5 097677c6a4ffc77a59d022c0a199b18a
+_psycode_script_md5: &psycode_script_md5 e4041014d17e13408f790e6d1f0e0228
 
 _full_field_gratings_stimulus: &full_field_gratings
   class: grating
