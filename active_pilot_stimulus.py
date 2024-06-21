@@ -494,7 +494,7 @@ if short_distrib_start2:
 
 # We only add the lick spout for the task
 DocWithLickSpout = DocWithLickSpout(stage = stage, task=f, delay=start_stop_padding, duration=max_task_duration_min*60)
-f.add_epoch(DocWithLickSpout)
+# f.add_epoch(DocWithLickSpout)
 list_epochs.append(DocWithLickSpout)
 
 epilogue = json_params.get('epilogue', None)
