@@ -458,7 +458,7 @@ if dev_mode:
 elif "luminance_matching_intensity" in stimulus:
     window = Window(
         fullscr=True,
-        screen=1,
+        screen=0,
         monitor='Gamma1.Luminance50',
         color=stimulus['luminance_matching_intensity'],
         warp=Warp.Spherical,
@@ -466,7 +466,7 @@ elif "luminance_matching_intensity" in stimulus:
 else: 
     window = Window(
         fullscr=True,
-        screen=1,
+        screen=0,
         monitor='Gamma1.Luminance50',
         warp=Warp.Spherical,
     )
