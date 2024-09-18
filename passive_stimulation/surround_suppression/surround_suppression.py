@@ -8,36 +8,33 @@ If you publish work using this script please cite the relevant PsychoPy publicat
 """
 
 from __future__ import division  # so that 1/3=0.333 instead of 1/3=0
-from psychopy import visual, core, data, event, logging, sound, gui
-from psychopy.constants import *  # things like STARTED, FINISHED
-import numpy as np  # whole numpy lib is available, prepend 'np.'
-from numpy import sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray
-from numpy.random import random, randint, normal, shuffle
-import os  # handy system and path functions
+from psychopy import visual, core, data, event, logging, gui
+import numpy as np
+from numpy.random import shuffle
+import os
 
 # Ensure that relative paths start from the same directory as this script
-_thisDir = os.path.dirname(os.path.abspath(__file__))
+_thisDir = "C:\Users\Roberto\Documents\GitHub\openscope_psycode\passive_stimulation\surround_suppression"
 os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = u'untitled'  # from the Builder filename that created this script
-expInfo = {'participant':'', 'session':'001'}
-dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
-if dlg.OK == False: core.quit()  # user pressed cancel
+expInfo = {'participant': '', 'session': '001'}
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
 expInfo['expName'] = expName
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-filename = _thisDir + os.sep + 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+filename = _thisDir + os.sep + 'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
+print(filename)
 
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
-    extraInfo=expInfo, runtimeInfo=None,
-    originPath=u'C:\\Users\\Roberto\\Documents\\temp\\untitled.psyexp',
-    savePickle=True, saveWideText=True,
-    dataFileName=filename)
-#save a log file for detail verbose info
-logFile = logging.LogFile(filename+'.log', level=logging.EXP)
+                                 extraInfo=expInfo, runtimeInfo=None,
+                                 originPath=u'C:\\Users\\Roberto\\Documents\\temp\\untitled.psyexp',
+                                 savePickle=True, saveWideText=True,
+                                 dataFileName=filename)
+# save a log file for detail verbose info
+logFile = logging.LogFile(filename + '.log', level=logging.EXP)
 logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
@@ -47,7 +44,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Setup the Window
 win = visual.Window(
     size=(1920, 1080),
-    fullscr=True,
+    fullscr=False,
     screen=0,
     allowGUI=False,
     allowStencil=True,
@@ -67,20 +64,20 @@ else:
     frameDur = 1.0 / 60.0
 
 # Define stimulus parameters
-diameters = [21, 36, 55, 75]  # Diameters of the Gabors in degrees
+diameters = [5, 15, 25, 35, 45]  # Diameters of the Gabors in degrees
 spatial_freq = 0.04  # Spatial frequency in cycles/degree
 temporal_freq = 2  # Temporal frequency in Hz
 orientation = 0  # Orientation of the Gabor in degrees
-num_trials_per_condition = 10  # Number of trials per condition
-spacing = 20  # Spacing between stimuli centers in degrees
+num_trials_per_condition = 15  # Number of trials per condition
 
-# Generate grid positions (3x3 grid)
-x_positions = np.linspace(-spacing, spacing, 3)
-y_positions = np.linspace(-spacing, spacing, 3)
+x_positions = np.arange(-10, 15, 10)  # [-10, 0, 10]
+y_positions = np.arange(-10, 15, 10)  # [-10, 0, 10]
 positions = []
 for y in y_positions:
     for x in x_positions:
-        positions.append({'posX': x, 'posY': y})
+        # Only add positions where either x or y is 0 (but not both unless it's the center)
+        if x == 0 or y == 0:
+            positions.append({'posX': x, 'posY': y})
 
 # Generate trial list
 trial_list = []
@@ -129,17 +126,21 @@ for thisTrial in trials:
     # Abbreviate parameter names
     if thisTrial != None:
         for paramName in thisTrial.keys():
-            exec(paramName + '= thisTrial[paramName]')
+            exec (paramName + '= thisTrial[paramName]')
 
     # Update Gabor stimulus parameters
     gabor.size = diameter
     gabor.pos = (posX, posY)
     gabor.phase = 0  # Reset phase
-    
+
     # Reset orientation variables at the start of each trial
     orientations = [0, 45, 90, 135]
     # Uncomment the next line if you want to randomize orientations
-    # np.random.shuffle(orientations)
+
+    np.random.shuffle(orientations)
+
+    thisExp.addData('orientation', gabor.ori)
+
     orientation_index = 0
     gabor.ori = orientations[orientation_index]
     orientation_change_times = [0.0, 0.5, 1.0, 1.5]
@@ -184,6 +185,6 @@ for thisTrial in trials:
 
     # End of trial routine
     thisExp.nextEntry()
-    
+
 win.close()
 core.quit()
