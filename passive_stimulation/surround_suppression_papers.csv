@@ -1,0 +1,7 @@
+link,title,year,stim sizes,n trials per size,apparent widths at pupil,n orientations,orientations ,duration,ISI,temporal freq,spatial freq
+https://www.nature.com/articles/nature11526#Sec8,A neural circuit for spatial summation in visual cortex,2021,6-7,,"10,34,55,70,80,94 or 8,13,21,36,55,75,97",4,"0, 45,  90, 135",1.5-2.5,10,2 Hz,0.04 cycles/degrees
+https://www.cell.com/neuron/fulltext/S0896-6273(20)30891-6,A Disinhibitory Circuit for Contextual Modulation in Primary Visual Cortex,2020,9,10,5 to 85,1 or 4 (if 4  each dur= 0.5),"0, 45,  90, 135",2,4,2 Hz,0.04 cycles/degrees
+10.1016/j.cub.2013.04.012,Locomotion Controls Spatial Integration in Mouse Visual Cortex,2013,11,40,5 to 60,1 (optimized per recording ),,1,0.5,2 Hz,0.05 cycles/deg
+https://www.nature.com/articles/s41467-018-06389-6#Sec9,Functional modulation of primary visual cortex by the superior colliculus in the mouse,2018,6,10,"10, 25, 40, 60, 90, and 120",12,0–330 (step=30),1,1,2 Hz,0.05 cycles/deg
+https://www.jneurosci.org/content/34/28/9290#sec-2,Orientation-Tuned Surround Suppression in Mouse Visual Cortex,2014,9,20,5 to 100,12,0–360° (step=30),0.5,0.5,"12, 18, 24, 30, 36 deg · s?1","0.01, 0.05, 0.1, and 0.2 cyc · deg?1"
+https://www.nature.com/articles/s41586-020-2319-4#Sec2,Feedback generates a second receptive field in neurons of the visual cortex,2020,5,20 to 30,5 to 45,1 (optimized per recording ),,1,1.5,2 Hz,0.04 cycles/degrees
