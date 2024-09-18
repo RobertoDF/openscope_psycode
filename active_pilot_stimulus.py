@@ -395,6 +395,43 @@ def create_receptive_field_mapping(window, number_runs = 15):
 
     return stimulus
 
+def create_surround_suppression_mapping(window, number_runs = 15):
+    x_positions = np.arange(-10, 15, 10)  # [-10, 0, 10]
+    y_positions = np.arange(-10, 15, 10)  # [-10, 0, 10]
+    position = []
+    for y in y_positions:
+        for x in x_positions:
+            # Only add positions where either x or y is 0 (but not both unless it's the center)
+            if x == 0 or y == 0:
+                position.append([x,y])
+
+    stimulus = Stimulus(visual.GratingStim(window,
+                        units='deg',
+                        size=20,
+                        mask="circle",
+                        texRes=256,
+                        sf=0.1,
+                        ),
+        sweep_params={
+                'Pos':(position, 0),
+                'Contrast': ([0.8], 4),
+                'TF': ([2.0], 1),
+                'SF': ([0.04], 2),
+                'Ori': ([0, 45, 90, 135], 3),
+                "size": ( [5, 15, 25, 35, 45], 5)
+                },
+        sweep_length=0.5,
+        start_time=0.0,
+        blank_length=0.0,
+        blank_sweeps=0,
+        runs=number_runs,
+        shuffle=True,
+        save_sweep_table=True,
+        )
+    stimulus.stim_path = r"C:\\not_a_stim_script\\receptive_field_block.stim"
+
+    return stimulus
+
 def load_params():
     parser = argparse.ArgumentParser()
     parser.add_argument("json_path", nargs="?", type=str, default="")
