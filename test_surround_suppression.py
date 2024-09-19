@@ -46,8 +46,8 @@ def init_grating(window, sweep_length, blank_length, contrast,  tf, sf, ori, siz
         return grating
 
 
-sweep_length = 0.25
-blank_length = 0.25
+sweep_length = 0.35
+blank_length = 0.15
 contrast = [.8]
 tf = 2
 sf = 0.04
