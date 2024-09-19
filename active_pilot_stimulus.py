@@ -362,6 +362,7 @@ class DocSpaceBarTracker(EObject):
         return super(DocSpaceBarTracker, self).package()
 
 def create_receptive_field_mapping(window, number_runs = 15):
+    # should be 5 min long in total
     x = np.arange(-40,45,10)
     y = np.arange(-40,45,10)
     position = []
@@ -395,34 +396,6 @@ def create_receptive_field_mapping(window, number_runs = 15):
 
     return stimulus
 
-def init_grating(window, session_params, contrast, phase, tf, sf, ori):
-
-        grating = Stimulus(visual.GratingStim(window,
-                                              pos=(0, 0),
-                                              units='deg',
-                                              size=(1000, 1000),
-                                              mask="None",
-                                              texRes=256,
-                                              sf=0.1,
-                                              ),
-                           sweep_params={'Contrast': ([contrast], 0),
-                                         'Phase': ([phase], 1),
-                                         'TF': ([tf], 2),
-                                         'SF': ([sf], 3),
-                                         'Ori': (ori, 4),
-                                         },
-                           sweep_length=session_params['stimulus_duration'],
-                           start_time=0.0,
-                           blank_length=session_params['interstimulus_duration'],
-                           blank_sweeps=4,
-                           runs=1,
-                           shuffle=False,
-                           save_sweep_table=True,
-                           )
-        grating.stim_path = r"C:\\not_a_stim_script\\init_grating.stim"
-
-        return grating
-
 
 def init_grating(window, sweep_length, blank_length, contrast,  tf, sf, ori, size, positions, blank_sweeps, number_runs):
 
@@ -452,6 +425,7 @@ def init_grating(window, sweep_length, blank_length, contrast,  tf, sf, ori, siz
         return grating
 
 def create_surround_suppression_mapping(window, number_runs = 15):
+    # 15 trials ideal, should be 15 min long in total
     sweep_length = 0.35
     blank_length = 0.15
     contrast = [.8]
