@@ -7,7 +7,7 @@ from camstim.change import DoCTask, DoCTrialGenerator
 from camstim.behavior import Epoch
 from camstim.sweepstim import MovieStim
 from camstim.experiment import EObject, ETimer
-from camstim import Stimulus, Window, Warp
+from camstim import Stimulus, Window, Warp, SweepStim
 from psychopy import monitors, visual
 try:
     from pyglet.window import key
@@ -395,42 +395,88 @@ def create_receptive_field_mapping(window, number_runs = 15):
 
     return stimulus
 
+def init_grating(window, session_params, contrast, phase, tf, sf, ori):
+
+        grating = Stimulus(visual.GratingStim(window,
+                                              pos=(0, 0),
+                                              units='deg',
+                                              size=(1000, 1000),
+                                              mask="None",
+                                              texRes=256,
+                                              sf=0.1,
+                                              ),
+                           sweep_params={'Contrast': ([contrast], 0),
+                                         'Phase': ([phase], 1),
+                                         'TF': ([tf], 2),
+                                         'SF': ([sf], 3),
+                                         'Ori': (ori, 4),
+                                         },
+                           sweep_length=session_params['stimulus_duration'],
+                           start_time=0.0,
+                           blank_length=session_params['interstimulus_duration'],
+                           blank_sweeps=4,
+                           runs=1,
+                           shuffle=False,
+                           save_sweep_table=True,
+                           )
+        grating.stim_path = r"C:\\not_a_stim_script\\init_grating.stim"
+
+        return grating
+
+
+def init_grating(window, sweep_length, blank_length, contrast,  tf, sf, ori, size, positions, blank_sweeps, number_runs):
+
+        grating = Stimulus(visual.GratingStim(window,
+                                        units               = 'deg',
+                                        mask                = "circle",
+                                        texRes              = 256,
+                                        ),
+                                        sweep_params        = { 'Contrast': ([contrast], 0),
+                                                                'TF': ([tf], 2),
+                                                                'SF': ([sf], 3),
+                                                                'Ori': (ori, 4),
+                                                                "Size": (size, 5),
+                                                                "Pos": (positions, 6)
+                                                                 },
+
+                                        sweep_length        = sweep_length,
+                                        start_time          = 0.0,
+                                        blank_length        = blank_length,
+                                        blank_sweeps        = blank_sweeps,
+                                        runs                = number_runs,
+                                        shuffle             = True,
+                                        save_sweep_table    = True,
+                                        )
+        grating.stim_path = r"C:\\not_a_stim_script\\init_grating.stim"
+
+        return grating
+
 def create_surround_suppression_mapping(window, number_runs = 15):
-    x_positions = np.arange(-10, 15, 10)  # [-10, 0, 10]
-    y_positions = np.arange(-10, 15, 10)  # [-10, 0, 10]
-    position = []
+    sweep_length = 0.25
+    blank_length = 0.25
+    contrast = [.8]
+    tf = 2
+    sf = 0.04
+    ori = [0, 45, 90, 135]
+    size = [5, 15, 25, 35, 45]
+    blank_sweeps = 0
+
+    x_positions = np.arange(-10, 15, 10)
+    y_positions = np.arange(-10, 15, 10)
+    positions = []
     for y in y_positions:
         for x in x_positions:
-            # Only add positions where either x or y is 0 (but not both unless it's the center)
             if x == 0 or y == 0:
-                position.append([x,y])
+                positions.append((x, y))
 
-    stimulus = Stimulus(visual.GratingStim(window,
-                        units='deg',
-                        size=20,
-                        mask="circle",
-                        texRes=256,
-                        sf=0.1,
-                        ),
-        sweep_params={
-                'Pos':(position, 0),
-                'Contrast': ([0.8], 4),
-                'TF': ([2.0], 1),
-                'SF': ([0.04], 2),
-                'Ori': ([0, 45, 90, 135], 3),
-                "size": ( [5, 15, 25, 35, 45], 5)
-                },
-        sweep_length=0.5,
-        start_time=0.0,
-        blank_length=0.0,
-        blank_sweeps=0,
-        runs=number_runs,
-        shuffle=True,
-        save_sweep_table=True,
-        )
+    gratings = []
+
+    gratings.append(
+        init_grating(window, sweep_length, blank_length, contrast, tf, sf, ori, size, positions, blank_sweeps, number_runs))
+
     stimulus.stim_path = r"C:\\not_a_stim_script\\receptive_field_block.stim"
 
-    return stimulus
+    return gratings
 
 def load_params():
     parser = argparse.ArgumentParser()
