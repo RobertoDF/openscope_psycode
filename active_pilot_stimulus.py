@@ -362,7 +362,7 @@ class DocSpaceBarTracker(EObject):
         return super(DocSpaceBarTracker, self).package()
 
 def create_receptive_field_mapping(window, number_runs = 15):
-    # should be 5 min long in total
+    # should be 5 min long in total, number_runs = 5
     x = np.arange(-40,45,10)
     y = np.arange(-40,45,10)
     position = []
