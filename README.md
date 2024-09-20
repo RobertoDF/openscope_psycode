@@ -1,3 +1,4 @@
+TODO: add one oddball stimuli, a small movie at the end of session
 ## Installation
 
 ### Dependencies:
