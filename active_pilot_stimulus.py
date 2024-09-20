@@ -362,7 +362,11 @@ class DocSpaceBarTracker(EObject):
         return super(DocSpaceBarTracker, self).package()
 
 def create_receptive_field_mapping(window, number_runs = 15):
-    # should be 5 min long in total, number_runs = 5
+    '''
+    5 trials ideal, should be 5 min long in total
+    3 orientations x 81 positions x 0.25 sec
+    3*81*.25 = 60.75 sec
+    '''
     x = np.arange(-40,45,10)
     y = np.arange(-40,45,10)
     position = []
@@ -425,10 +429,14 @@ def init_grating(window, sweep_length, blank_length, contrast,  tf, sf, ori, siz
         return grating
 
 def create_surround_suppression_mapping(window, number_runs = 15):
-    # 15 trials ideal, should be 15 min long in total
-    sweep_length = 0.35
-    blank_length = 0.15
-    contrast = [.8]
+    '''
+    18 trials ideal, should be 15 min long in total
+    4 orientations x 5 sizes x 5 positions x 0.5 sec (0.3 stim + 0.2 blank screen)
+    4*5*5*0.5 = 50 sec
+    '''
+    sweep_length = 0.3
+    blank_length = 0.2
+    contrast = [1]
     tf = 2
     sf = 0.04
     ori = [0, 45, 90, 135]
@@ -554,6 +562,7 @@ start_stop_padding = json_params.get('start_stop_padding', 0.5)
 # add prologue to start of session
 prologue = json_params.get('prologue', False)
 number_runs_rf = json_params.get('number_runs_rf', 1) # 8 is the number of repeats for prod(8min)
+number_runs_ss = json_params.get('number_runs_ss', 1) # TODO: we should have a separate param for trial number of surround suppression mapping
 prologue_offset = 0
 if prologue:
     epilogue_stim_pre = create_receptive_field_mapping(window, number_runs_rf)
@@ -562,7 +571,16 @@ if prologue:
         when=0.0,
         name="pre_receptive_field_mapping",
     )
-    prologue_offset = number_runs_rf*60
+    # TODO: not sure about the following
+    #######
+    epilogue_stim_pre = create_surround_suppression_mapping(window, number_runs_ss)
+    f.add_static_stimulus(
+        epilogue_stim_pre,
+        when='end',
+        name="pre_surround_suppression_mapping"
+    )
+    #######
+    prologue_offset = number_runs_rf*60.75 + number_runs_ss*50 #one surround suppression mapping takes 50 sec
 
 injection_start = json_params.get('injection_start', None)  
 injection_end = json_params.get('injection_end', None)
@@ -604,7 +622,15 @@ if epilogue:
         when='end',
         name="post_receptive_field_mapping"
     )
-
+    # TODO: not sure about the following
+    #######
+    epilogue_stim_post = create_surround_suppression_mapping(window, number_runs_ss)
+    f.add_static_stimulus(
+        epilogue_stim_post,
+        when='end',
+        name="post_surround_suppression_mapping"
+    )
+    #######
 try:
     f.start_epochs(list_epochs)
 except SystemExit:
