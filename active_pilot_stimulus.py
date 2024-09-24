@@ -431,7 +431,7 @@ def init_grating(window, sweep_length, blank_length, contrast,  tf, sf, ori, siz
 def create_surround_suppression_mapping(window, number_runs = 15):
     '''
     18 trials ideal, should be 15 min long in total
-    4 orientations x 5 sizes x 5 positions x 0.5 sec (0.3 stim + 0.2 blank screen)
+    4 orientations x 5 sizes x 5 positions x 0.5 sec (0.3 stim + 0.3 blank screen)
     4*5*5*0.5 = 50 sec
     '''
     sweep_length = 0.3
