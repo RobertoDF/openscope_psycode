@@ -7,7 +7,7 @@ from camstim.change import DoCTask, DoCTrialGenerator
 from camstim.behavior import Epoch
 from camstim.sweepstim import MovieStim
 from camstim.experiment import EObject, ETimer
-from camstim import Stimulus, Window, Warp
+from camstim import Stimulus, Window, Warp, SweepStim
 from psychopy import monitors, visual
 try:
     from pyglet.window import key
@@ -362,6 +362,11 @@ class DocSpaceBarTracker(EObject):
         return super(DocSpaceBarTracker, self).package()
 
 def create_receptive_field_mapping(window, number_runs = 15):
+    '''
+    5 trials ideal, should be 5 min long in total
+    3 orientations x 81 positions x 0.25 sec
+    3*81*.25 = 60.75 sec
+    '''
     x = np.arange(-40,45,10)
     y = np.arange(-40,45,10)
     position = []
@@ -394,6 +399,66 @@ def create_receptive_field_mapping(window, number_runs = 15):
     stimulus.stim_path = r"C:\\not_a_stim_script\\receptive_field_block.stim"
 
     return stimulus
+
+
+def init_grating(window, sweep_length, blank_length, contrast,  tf, sf, ori, size, positions, blank_sweeps, number_runs):
+
+        grating = Stimulus(visual.GratingStim(window,
+                                        units               = 'deg',
+                                        mask                = "circle",
+                                        texRes              = 256,
+                                        ),
+                                        sweep_params        = { 'Contrast': ([contrast], 0),
+                                                                'TF': ([tf], 2),
+                                                                'SF': ([sf], 3),
+                                                                'Ori': (ori, 4),
+                                                                "Size": (size, 5),
+                                                                "Pos": (positions, 6)
+                                                                 },
+
+                                        sweep_length        = sweep_length,
+                                        start_time          = 0.0,
+                                        blank_length        = blank_length,
+                                        blank_sweeps        = blank_sweeps,
+                                        runs                = number_runs,
+                                        shuffle             = True,
+                                        save_sweep_table    = True,
+                                        )
+        grating.stim_path = r"C:\\not_a_stim_script\\init_grating.stim"
+
+        return grating
+
+def create_surround_suppression_mapping(window, number_runs = 15):
+    '''
+    18 trials ideal, should be 15 min long in total
+    4 orientations x 5 sizes x 5 positions x 0.5 sec (0.3 stim + 0.3 blank screen)
+    4*5*5*0.5 = 50 sec
+    '''
+    sweep_length = 0.3
+    blank_length = 0.3
+    contrast = [1]
+    tf = 2
+    sf = 0.04
+    ori = [0, 45, 90, 135]
+    size = [5, 15, 25, 35, 45]
+    blank_sweeps = 0
+
+    x_positions = np.arange(-10, 15, 10)
+    y_positions = np.arange(-10, 15, 10)
+    positions = []
+    for y in y_positions:
+        for x in x_positions:
+            if x == 0 or y == 0:
+                positions.append((x, y))
+
+    gratings = []
+
+    gratings.append(
+        init_grating(window, sweep_length, blank_length, contrast, tf, sf, ori, size, positions, blank_sweeps, number_runs))
+
+    stimulus.stim_path = r"C:\\not_a_stim_script\\receptive_field_block.stim"
+
+    return gratings
 
 def load_params():
     parser = argparse.ArgumentParser()
@@ -497,6 +562,7 @@ start_stop_padding = json_params.get('start_stop_padding', 0.5)
 # add prologue to start of session
 prologue = json_params.get('prologue', False)
 number_runs_rf = json_params.get('number_runs_rf', 1) # 8 is the number of repeats for prod(8min)
+number_runs_ss = json_params.get('number_runs_ss', 1) # TODO: we should have a separate param for trial number of surround suppression mapping
 prologue_offset = 0
 if prologue:
     epilogue_stim_pre = create_receptive_field_mapping(window, number_runs_rf)
@@ -505,7 +571,16 @@ if prologue:
         when=0.0,
         name="pre_receptive_field_mapping",
     )
-    prologue_offset = number_runs_rf*60
+    # TODO: not sure about the following
+    #######
+    epilogue_stim_pre = create_surround_suppression_mapping(window, number_runs_ss)
+    f.add_static_stimulus(
+        epilogue_stim_pre,
+        when='end',
+        name="pre_surround_suppression_mapping"
+    )
+    #######
+    prologue_offset = number_runs_rf*60.75 + number_runs_ss*50 #one surround suppression mapping takes 50 sec
 
 injection_start = json_params.get('injection_start', None)  
 injection_end = json_params.get('injection_end', None)
@@ -547,7 +622,15 @@ if epilogue:
         when='end',
         name="post_receptive_field_mapping"
     )
-
+    # TODO: not sure about the following
+    #######
+    epilogue_stim_post = create_surround_suppression_mapping(window, number_runs_ss)
+    f.add_static_stimulus(
+        epilogue_stim_post,
+        when='end',
+        name="post_surround_suppression_mapping"
+    )
+    #######
 try:
     f.start_epochs(list_epochs)
 except SystemExit:
