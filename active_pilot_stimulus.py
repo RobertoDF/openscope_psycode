@@ -435,7 +435,7 @@ def create_surround_suppression_mapping(window, number_runs = 15):
     4*5*5*0.5 = 50 sec
     '''
     sweep_length = 0.3
-    blank_length = 0.2
+    blank_length = 0.3
     contrast = [1]
     tf = 2
     sf = 0.04
